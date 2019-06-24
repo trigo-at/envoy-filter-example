@@ -3,7 +3,7 @@
 #include <string>
 
 #include "envoy/server/filter_config.h"
-
+#include "common/common/logger.h"
 #include "http-filter-example/http_filter.pb.h"
 
 namespace Envoy {
@@ -23,7 +23,7 @@ private:
 
 typedef std::shared_ptr<HttpSampleDecoderFilterConfig> HttpSampleDecoderFilterConfigSharedPtr;
 
-class HttpSampleDecoderFilter : public StreamDecoderFilter {
+class HttpSampleDecoderFilter : public StreamEncoderFilter {
 public:
   HttpSampleDecoderFilter(HttpSampleDecoderFilterConfigSharedPtr);
   ~HttpSampleDecoderFilter();
@@ -31,18 +31,19 @@ public:
   // Http::StreamFilterBase
   void onDestroy() override;
 
-  // Http::StreamDecoderFilter
-  FilterHeadersStatus decodeHeaders(HeaderMap&, bool) override;
-  FilterDataStatus decodeData(Buffer::Instance&, bool) override;
-  FilterTrailersStatus decodeTrailers(HeaderMap&) override;
-  void setDecoderFilterCallbacks(StreamDecoderFilterCallbacks&) override;
+  FilterHeadersStatus encode100ContinueHeaders(HeaderMap& headers) override;
+  FilterHeadersStatus encodeHeaders(HeaderMap&, bool) override;
+  FilterDataStatus encodeData(Buffer::Instance&, bool) override;
+  FilterTrailersStatus encodeTrailers(HeaderMap&) override;
+  FilterMetadataStatus encodeMetadata(MetadataMap& metadata_map) override;
+
+  void setEncoderFilterCallbacks(StreamEncoderFilterCallbacks&) override;
 
 private:
   const HttpSampleDecoderFilterConfigSharedPtr config_;
-  StreamDecoderFilterCallbacks* decoder_callbacks_;
+  StreamEncoderFilterCallbacks* encoder_callbacks_;
 
-  const LowerCaseString headerKey() const;
-  const std::string headerValue() const;
+  std::string jsonBody{""};
 };
 
 } // namespace Http

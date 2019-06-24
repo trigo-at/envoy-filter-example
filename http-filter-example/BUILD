@@ -28,6 +28,10 @@ envoy_cc_library(
     srcs = ["http_filter.cc"],
     hdrs = ["http_filter.h"],
     repository = "@envoy",
+    external_deps = [
+        "rapidjson",
+    ],
+
     deps = [
         ":http_filter_proto_cc",
         "@envoy//source/exe:envoy_common_lib",

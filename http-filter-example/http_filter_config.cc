@@ -47,8 +47,8 @@ private:
             Http::HttpSampleDecoderFilterConfig(proto_config));
 
     return [config](Http::FilterChainFactoryCallbacks& callbacks) -> void {
-      auto filter = new Http::HttpSampleDecoderFilter(config);
-      callbacks.addStreamDecoderFilter(Http::StreamDecoderFilterSharedPtr{filter});
+      auto filterEncoder = new Http::HttpSampleDecoderFilter(config);
+      callbacks.addStreamEncoderFilter(Http::StreamEncoderFilterSharedPtr{filterEncoder});
     };
   }
 

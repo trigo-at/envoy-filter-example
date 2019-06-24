@@ -1,3 +1,6 @@
+#include <string>
+#include <iostream>
+
 #include "test/integration/http_integration.h"
 
 namespace Envoy {
@@ -37,6 +40,9 @@ TEST_P(HttpFilterSampleIntegrationTest, Test1) {
 
   EXPECT_EQ("sample-filter",
                request_stream->headers().get(Http::LowerCaseString("via"))->value().getStringView());
+  
+  
+  std::cout << response->body() << std::endl;
 
   codec_client->close();
 }
