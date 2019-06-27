@@ -59,28 +59,8 @@ FilterHeadersStatus HttpSampleDecoderFilter::encodeHeaders(HeaderMap& headers, b
   return FilterHeadersStatus::Continue;
 }
 
-FilterTrailersStatus HttpSampleDecoderFilter::encodeTrailers(HeaderMap& headers) {
+FilterTrailersStatus HttpSampleDecoderFilter::encodeTrailers(HeaderMap&) {
   std::cout << "HttpSampleDecoderFilter::encodeTrailers(HeaderMap&)" << std::endl; 
-  
-  if (jsonBody.length()) {
-    rapidjson::Document jsonDoc;
-    jsonDoc.Parse(jsonBody.c_str()); 
-    jsonDoc.RemoveMember("type");
-
-    rapidjson::StringBuffer buffer;
-    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-    jsonDoc.Accept(writer);
-
-    std::cout << "Filtered JSON: " << buffer.GetString() << "length:" << buffer.GetSize() << std::endl;
-
-    Buffer::OwnedImpl empty_buffer;
-    empty_buffer.add(buffer.GetString());
-    
-    headers.insertContentLength().value(buffer.GetSize());
-    
-    encoder_callbacks_->addEncodedData(empty_buffer, false);
-  }
-  
   return FilterTrailersStatus::Continue;
 }
 
@@ -95,6 +75,20 @@ FilterDataStatus HttpSampleDecoderFilter::encodeData(Buffer::Instance& data, boo
     jsonBody = data.toString();
     std::cout << "Original JSON" << jsonBody << jsonBody.c_str() <<  std::endl;
     
+    rapidjson::Document jsonDoc;
+    jsonDoc.Parse(jsonBody.c_str()); 
+    jsonDoc.RemoveMember("type");
+    jsonDoc.AddMember("newprop", "asfasdgasduighasdiughasdiugohasdiugahiugahsduigaohsdguiahsdgaihgaiuosdghaidusgh", jsonDoc.GetAllocator());
+
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    jsonDoc.Accept(writer);
+
+    std::cout << "Filtered JSON: " << buffer.GetString() << " length:" << buffer.GetSize() << std::endl;
+
+    std::cout << "Original Data length: " << jsonBody.size() << " length: " << jsonBody.length() << std::endl;
+    data.drain(jsonBody.size() - 1);
+    data.prepend(buffer.GetString());
   }
 
   return FilterDataStatus::StopIterationAndBuffer;
